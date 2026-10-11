@@ -3,11 +3,13 @@ import type {
   ResolvedRevisionMarkup,
   ReviewDisplayMode,
   FieldResultsMode,
+  ContentLockPolicy,
 } from '@docx-editor.dev/core/editor';
 import { FormControlTranslateProvider } from './form-control-translate';
 import { DialogProvider } from './dialog-host';
 import { PopupConfigProvider, type DocxEditorPopups } from './popup-config';
 import { warnFieldResultsChanged } from './field-results-warning';
+import { warnContentLockPolicyChanged } from './content-lock-policy-warning';
 import type { DocxEditorChildren } from '../docx-editor-children';
 // Provider-first host for the docx editor facade.
 //
@@ -140,6 +142,13 @@ export interface DocxEditorRootProps {
    * with a collaboration module.
    */
   fieldResults?: FieldResultsMode;
+  /**
+   * Opt-in relaxation of content-control locks. With `allowFormattingInLockedContent: true`,
+   * readers can format `contentLocked` and `sdtContentLocked` controls while their text stays
+   * protected. Read once, when the editor is created: a later change in value is ignored,
+   * with a development warning.
+   */
+  contentLockPolicy?: ContentLockPolicy;
 
   /** Fired once per instance, after it is published to the tree (and after any
    *  `DocxEditor.Content` in the same commit has attached its mount point). A large
@@ -268,6 +277,8 @@ export function DocxEditorRoot(props: DocxEditorRootProps) {
   const [editor, setEditor] = useState<DocxEditorInstance | null>(null);
   /** The `fieldResults` the current instance was created with. */
   const createdFieldResults = useRef(props.fieldResults);
+  /** The `contentLockPolicy` the current instance was created with. */
+  const createdContentLockPolicy = useRef(props.contentLockPolicy);
 
   // The channel `<DocxEditor.ColorByChangeType>` / `<DocxEditor.AuthorStyle>` declare through.
   // A store: declarations register from anywhere in the subtree, and identity must hold
@@ -291,6 +302,7 @@ export function DocxEditorRoot(props: DocxEditorRootProps) {
     // FIRST paint is already styled — no kind-coloured frame.
     const declaredStyles = revisionStyleRegistry.current();
     createdFieldResults.current = p.fieldResults;
+    createdContentLockPolicy.current = p.contentLockPolicy;
     const instance = createDocxEditor({
       ...(p.document !== undefined ? { document: p.document } : {}),
       ...(p.fonts ? { fonts: p.fonts } : {}),
@@ -300,6 +312,7 @@ export function DocxEditorRoot(props: DocxEditorRootProps) {
       ...(p.revisionMarkup !== undefined ? { revisionMarkup: p.revisionMarkup } : {}),
       ...(p.reviewDisplayMode !== undefined ? { reviewDisplayMode: p.reviewDisplayMode } : {}),
       ...(p.fieldResults !== undefined ? { fieldResults: p.fieldResults } : {}),
+      ...(p.contentLockPolicy !== undefined ? { contentLockPolicy: p.contentLockPolicy } : {}),
       ...(p.mode !== undefined ? { mode: p.mode } : {}),
       ...(declaredStyles !== undefined ? { revisionStyles: declaredStyles } : {}),
       ...(p.modules !== undefined ? { modules: p.modules } : {}),
@@ -438,6 +451,12 @@ export function DocxEditorRoot(props: DocxEditorRootProps) {
   useEffect(() => {
     if (editor) warnFieldResultsChanged(createdFieldResults.current, props.fieldResults);
   }, [editor, props.fieldResults]);
+
+  // Compared by value, so an inline policy object re-created on each render does not warn.
+  useEffect(() => {
+    if (editor)
+      warnContentLockPolicyChanged(createdContentLockPolicy.current, props.contentLockPolicy);
+  }, [editor, props.contentLockPolicy]);
 
   // Table furniture labels follow the live locale resolver without remounting the editor.
   useEffect(() => {

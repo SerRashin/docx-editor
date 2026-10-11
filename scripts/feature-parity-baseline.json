@@ -300,6 +300,7 @@
       "propsAddedInReact": [
         "author",
         "children",
+        "contentLockPolicy",
         "document",
         "fieldResults",
         "fonts",
@@ -515,6 +516,7 @@
         "author",
         "change",
         "children",
+        "contentLockPolicy",
         "document",
         "editorRef",
         "emit",

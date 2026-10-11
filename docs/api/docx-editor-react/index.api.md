@@ -32,6 +32,7 @@ import { ContentControlListNavigation } from '@docx-editor.dev/core/editor';
 import { ContentControlSummary } from '@docx-editor.dev/core';
 import { ContentControlType } from '@docx-editor.dev/core';
 import { ContentControlWidgetSession } from '@docx-editor.dev/core/editor';
+import { ContentLockPolicy } from '@docx-editor.dev/core/editor';
 import { createDocumentRefresh } from '@docx-editor.dev/core/editor';
 import { createFontSource } from '@docx-editor.dev/core/editor';
 import { CSSProperties } from 'react';
@@ -1227,6 +1228,7 @@ export interface DocxEditorProps {
     // (undocumented)
     className?: string;
     readonly colorMode?: 'light' | 'dark' | 'system';
+    contentLockPolicy?: ContentLockPolicy;
     contextMenu?: boolean | DocxEditorContextMenuProps;
     document?: DocumentSource;
     fieldResults?: FieldResultsMode;
@@ -1338,6 +1340,7 @@ export interface DocxEditorRootProps {
     author?: string;
     // (undocumented)
     children?: DocxEditorChildren;
+    contentLockPolicy?: ContentLockPolicy;
     document?: DocumentSource;
     fieldResults?: FieldResultsMode;
     fonts?: FontConfiguration | FontConfigurationFragment | FontResolver;

@@ -47,6 +47,7 @@ import { resolveTocSources } from '../store/package/toc-sources.ts';
 import {
   commandProtectionRefusal,
   createControlWriteRefusal,
+  registerContentLockPolicy,
   registerFormFieldIdentity,
   writeRejectionReason,
 } from './command-protection.ts';
@@ -369,7 +370,10 @@ export function mountPaginatedSurface(
   const fieldScope = surfaceFieldResultsScope(options);
   const opened =
     runtimeOptions.openedSession ??
-    openTreeSession(bytes, options.reviewModel ? { reviewModel: options.reviewModel } : {});
+    openTreeSession(bytes, {
+      ...(options.reviewModel ? { reviewModel: options.reviewModel } : {}),
+      ...(options.contentLockPolicy ? { contentLockPolicy: options.contentLockPolicy } : {}),
+    });
   if (!opened.ok) {
     return {
       ok: false,
@@ -5888,6 +5892,7 @@ export function mountPaginatedSurface(
     fieldScope
   );
   registerFormFieldIdentity(surface, textFormInteraction.fieldId);
+  registerContentLockPolicy(surface, options.contentLockPolicy);
   legacyCheckboxInteraction = createLegacyCheckboxInteraction({
     pagesLayer,
     part: (paragraphId?: string) =>
