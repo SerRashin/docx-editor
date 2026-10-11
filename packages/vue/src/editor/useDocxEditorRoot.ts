@@ -3,9 +3,11 @@ import type {
   ResolvedRevisionMarkup,
   ReviewDisplayMode,
   FieldResultsMode,
+  LockedControlNavigation,
 } from '@docx-editor.dev/core/editor';
 import { formControlTranslateKey } from './form-control-translate';
 import { warnFieldResultsChanged } from './field-results-warning';
+import { warnLockedControlNavigationChanged } from './locked-control-navigation-warning';
 import {
   computed,
   inject,
@@ -93,6 +95,13 @@ export interface DocxEditorRootProps {
    * with a collaboration module.
    */
   fieldResults?: FieldResultsMode;
+  /**
+   * How the caret moves through an inline content control whose content is locked.
+   * `'characters'` (the default) walks through its characters, as Word does. `'atomic'` makes
+   * the control one caret unit. Read once, when the editor is created: a later change is
+   * ignored, with a development warning.
+   */
+  lockedControlNavigation?: LockedControlNavigation;
 
   tableInteractionLabel?: (key: 'table.insertRowBelow' | 'table.insertColumnRight') => string;
   imageDecodePort?: ImageDecodePort;
@@ -141,6 +150,8 @@ export function useDocxEditorRootOwner(
   const editorRef = shallowRef<DocxEditorInstance | null>(null);
   /** The `fieldResults` the current instance was created with. */
   let createdFieldResults: DocxEditorRootProps['fieldResults'];
+  /** The `lockedControlNavigation` the current instance was created with. */
+  let createdLockedControlNavigation: DocxEditorRootProps['lockedControlNavigation'];
   const markupRevision = shallowRef(0);
   let applyingMarkup = false;
   const tick = shallowRef(0);
@@ -235,6 +246,7 @@ export function useDocxEditorRootOwner(
     destroyEditor();
     const p = toValue(props);
     createdFieldResults = p.fieldResults;
+    createdLockedControlNavigation = p.lockedControlNavigation;
     const instance = createDocxEditor({
       ...(p.document !== undefined ? { document: p.document } : {}),
       ...(p.fonts ? { fonts: p.fonts } : {}),
@@ -244,6 +256,9 @@ export function useDocxEditorRootOwner(
       ...(p.revisionMarkup !== undefined ? { revisionMarkup: p.revisionMarkup } : {}),
       ...(p.reviewDisplayMode !== undefined ? { reviewDisplayMode: p.reviewDisplayMode } : {}),
       ...(p.fieldResults !== undefined ? { fieldResults: p.fieldResults } : {}),
+      ...(p.lockedControlNavigation !== undefined
+        ? { lockedControlNavigation: p.lockedControlNavigation }
+        : {}),
       ...(p.mode !== undefined ? { mode: p.mode } : {}),
       ...(revisionStyleRegistry.current() !== undefined
         ? { revisionStyles: revisionStyleRegistry.current() }
@@ -396,6 +411,17 @@ export function useDocxEditorRootOwner(
     () => [editorRef.value, toValue(props).fieldResults] as const,
     ([editor, fieldResults]) => {
       if (editor) warnFieldResultsChanged(createdFieldResults, fieldResults);
+    },
+    { flush: 'post' }
+  );
+
+  // Read once at creation, like `fieldResults`.
+  watch(
+    () => [editorRef.value, toValue(props).lockedControlNavigation] as const,
+    ([editor, lockedControlNavigation]) => {
+      if (editor) {
+        warnLockedControlNavigationChanged(createdLockedControlNavigation, lockedControlNavigation);
+      }
     },
     { flush: 'post' }
   );

@@ -58,6 +58,7 @@ export type {
   FontUrlSource,
   HyperlinkActivation,
   HyperlinkChromeHandlers,
+  LockedControlNavigation,
   SurfaceHyperlink,
 } from './editor/index.ts';
 

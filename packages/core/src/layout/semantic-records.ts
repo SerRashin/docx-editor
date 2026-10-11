@@ -937,6 +937,18 @@ export interface ContentControlBoundaryRecord {
   readonly nestingDepth: number;
   readonly level: ContentControlLevel;
   readonly fragments: readonly ContentControlGeometryFragment[];
+  /** An inline control's model offsets in its paragraph; positions map through this, not geometry. */
+  readonly range?: ContentControlModelRange;
+}
+
+/** `[start, end)` UTF-16 offsets of an inline control's content in one paragraph. */
+export interface ContentControlModelRange {
+  /** The paragraph that holds the control. */
+  readonly paragraphId: string;
+  /** Offset of the control's first character. */
+  readonly start: number;
+  /** Offset just past the control's last character. */
+  readonly end: number;
 }
 
 /**

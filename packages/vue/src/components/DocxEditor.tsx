@@ -5,6 +5,7 @@ import type {
   ResolvedRevisionMarkup,
   ReviewDisplayMode,
   FieldResultsMode,
+  LockedControlNavigation,
 } from '@docx-editor.dev/core/editor';
 import { DocxEditorExportDialog } from '../editor/DocxEditorExportDialog';
 import { DocxEditorPrintDialog } from '../editor/DocxEditorPrintDialog';
@@ -240,6 +241,10 @@ const docxEditorFrameProps = {
   revisionMarkup: Object as PropType<RevisionMarkupOptions>,
   reviewDisplayMode: String as PropType<ReviewDisplayMode>,
   fieldResults: { type: String as PropType<FieldResultsMode>, default: undefined },
+  lockedControlNavigation: {
+    type: String as PropType<LockedControlNavigation>,
+    default: undefined,
+  },
   zoomMode: { type: [Object, String] as PropType<DocxEditorProps['zoomMode']>, default: undefined },
   locale: { type: String, default: undefined },
   author: { type: String, default: undefined },
@@ -471,6 +476,9 @@ const DocxEditorFrame = defineComponent({
           revisionMarkup: props.revisionMarkup,
           reviewDisplayMode: props.reviewDisplayMode,
           ...(props.fieldResults !== undefined ? { fieldResults: props.fieldResults } : {}),
+          ...(props.lockedControlNavigation !== undefined
+            ? { lockedControlNavigation: props.lockedControlNavigation }
+            : {}),
           onRevisionMarkupChange: (settings: ResolvedRevisionMarkup) =>
             emit('revisionMarkupChange', settings),
           ...(props.zoomMode !== undefined ? { zoomMode: props.zoomMode } : {}),

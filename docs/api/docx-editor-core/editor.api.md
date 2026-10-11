@@ -1336,6 +1336,7 @@ export interface DocxEditorConfig {
     fonts?: FontConfiguration | FontConfigurationFragment | FontResolver;
     imageDecodePort?: ImageDecodePort;
     locale?: string;
+    lockedControlNavigation?: LockedControlNavigation;
     mode?: 'edit' | 'view' | 'suggesting';
     modules?: readonly EditorModule[];
     // (undocumented)
@@ -1958,6 +1959,9 @@ export interface LoadFontsResult extends FontConfigurationFragment {
 export const LOADING_SNAPSHOT: EditorSnapshot;
 
 // @public
+export type LockedControlNavigation = 'characters' | 'atomic';
+
+// @public
 export function lowerColorValueForBorder(color: ColorValue, themeColors: readonly DocumentThemeColorEntry[]): ColorLowerResult;
 
 // @public
@@ -2300,6 +2304,7 @@ export interface PaginatedSurfaceOptions {
     readonly hiddenRevisionAuthors?: readonly string[];
     readonly imageDecodePort?: ImageDecodePort;
     readonly locale?: string;
+    readonly lockedControlNavigation?: LockedControlNavigation;
     // (undocumented)
     readonly measurer?: TextMeasurer;
     // (undocumented)

@@ -1307,6 +1307,7 @@ export interface DocxEditorConfig {
     fonts?: FontConfiguration | FontConfigurationFragment | FontResolver;
     imageDecodePort?: ImageDecodePort;
     locale?: string;
+    lockedControlNavigation?: LockedControlNavigation;
     mode?: 'edit' | 'view' | 'suggesting';
     modules?: readonly EditorModule[];
     // (undocumented)
@@ -2579,6 +2580,9 @@ export interface LoadFontsResult extends FontConfigurationFragment {
     // (undocumented)
     readonly sources: readonly FontSource[];
 }
+
+// @public
+export type LockedControlNavigation = 'characters' | 'atomic';
 
 // @public
 export type MarkedFontResolver<T extends FontResolver = FontResolver> = T & FontResolverMark;
