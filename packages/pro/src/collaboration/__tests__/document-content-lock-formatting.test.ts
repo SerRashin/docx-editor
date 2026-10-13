@@ -175,3 +175,23 @@ test('formatting a chip while the other peer deletes the chip converges, through
   );
   expect(chipText(reopened)).toBe('TOKEN');
 });
+
+test('session remount keeps received formatting while the local default still refuses changes', async () => {
+  const { pair, alice, bob, converge } = await peers();
+  select(alice, 5, 10);
+  expect(alice.exec({ type: 'toggleMark', mark: 'bold' }).ok).toBe(true);
+  converge();
+  bob.destroy();
+  const next = await harness.remount(pair.bob);
+  next.detach();
+  const reconnected = mount({
+    document: next.room.document,
+    modules: [collaborationModule({ session: next.room.session })],
+  });
+  expect(isBold(reconnected)).toBe(true);
+  select(reconnected, 5, 10);
+  const before = mainXml(reconnected);
+  reconnected.exec({ type: 'toggleMark', mark: 'bold' });
+  expect(mainXml(reconnected)).toBe(before);
+  expect(chipText(reconnected)).toBe('TOKEN');
+});

@@ -38,9 +38,11 @@ function mount(contentLockPolicy?: ContentLockPolicy) {
     ...(contentLockPolicy ? { contentLockPolicy } : {}),
   });
   if (!editor.surface) throw new Error('surface failed to mount');
+  const runtime = DocxEditorBrowser.createBrowser(editor);
   return {
-    runtime: DocxEditorBrowser.createBrowser(editor),
+    runtime,
     dispose() {
+      runtime.dispose();
       editor.destroy();
       container.remove();
     },
