@@ -1,7 +1,7 @@
 {
   "OfficeExtension.ClientRequestContext#sync": {
     "status": "partial",
-    "notes": "One atomic write batch targets one story. Main-body, header, footer, and other story writes need separate sync calls. Mixed-story writes refuse with ConflictingChanges without committing that batch. Reads can span stories. Earlier successful syncs remain committed after a later failure."
+    "notes": "One atomic write batch targets one story. Main-body, header, footer, and other story writes need separate sync calls. Mixed-story writes refuse with ConflictingChanges without committing that batch. Reads can span stories. Earlier successful syncs remain committed after a later failure. Editing a paragraph and deleting its containing control in one batch refuses with ConflictingChanges before writing."
   },
   "Word.run": {
     "status": "different",

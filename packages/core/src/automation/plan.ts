@@ -2801,6 +2801,12 @@ export function createBatchPlanner(host: BatchPlannerHost): BatchPlanner {
         const plan = planFor(found.reads);
         const pin = pinWrite(plan);
         if (pin) return pin;
+        if (!operation.keepContent) {
+          for (const paragraphId of found.control.paragraphIds) {
+            const conflict = claim(plan, paragraphId);
+            if (conflict) return conflict;
+          }
+        }
         return {
           ok: true,
           kind: 'command',

@@ -108,46 +108,55 @@ describe('insertContentControl over the protocol', () => {
     expect([textAt(named, 0), textAt(named, 1)]).toEqual(['a', 'b']);
   });
 
-  test('returnHandle never names another operation`s control when its own is removed', () => {
-    // P1 sits inside a block control the same batch deletes, so the control inserted there is
-    // gone after the commit. Its answer must not fall back to the control P2 received.
-    const host = open(
-      docx(
-        '<w:sdt><w:sdtPr><w:tag w:val="block"/></w:sdtPr><w:sdtContent>' +
-          '<w:p><w:r><w:t>first</w:t></w:r></w:p></w:sdtContent></w:sdt>' +
-          '<w:p><w:r><w:t>second</w:t></w:r></w:p>'
-      )
-    );
-    const { body } = roots(host);
-    const [first, second] = paragraphsOf(host, body);
-    const [block] = handlesAt(
-      host.execute({ operations: [{ op: 'getContentControls', scope: { body } }] }),
-      0
-    );
-    const at = (paragraph: NonNullable<typeof first>) => ({
-      start: { paragraph, at: 'end' as const },
-      end: { paragraph, at: 'end' as const },
-    });
-    expect(() =>
-      host.execute({
-        operations: [
-          {
-            op: 'insertContentControl',
-            span: at(first!),
-            subtype: 'plainText',
-            tag: 'a',
-            returnHandle: true,
-          },
-          {
-            op: 'insertContentControl',
-            span: at(second!),
-            subtype: 'plainText',
-            tag: 'b',
-            returnHandle: true,
-          },
-          { op: 'deleteContentControl', contentControl: block!, keepContent: false },
-        ],
-      })
-    ).toThrow('content control insertion did not create a control');
-  });
+  test.each([false, true])(
+    'refuses deleting a control containing a queued insertion before writing (delete first: %s)',
+    (deleteFirst) => {
+      // P1 sits inside a block control the same batch deletes, so the control inserted there is
+      // gone after the commit. Its answer must not fall back to the control P2 received.
+      const host = open(
+        docx(
+          '<w:sdt><w:sdtPr><w:tag w:val="block"/></w:sdtPr><w:sdtContent>' +
+            '<w:p><w:r><w:t>first</w:t></w:r></w:p></w:sdtContent></w:sdt>' +
+            '<w:p><w:r><w:t>second</w:t></w:r></w:p>'
+        )
+      );
+      const { body } = roots(host);
+      const [first, second] = paragraphsOf(host, body);
+      const [block] = handlesAt(
+        host.execute({ operations: [{ op: 'getContentControls', scope: { body } }] }),
+        0
+      );
+      const at = (paragraph: NonNullable<typeof first>) => ({
+        start: { paragraph, at: 'end' as const },
+        end: { paragraph, at: 'end' as const },
+      });
+      const before = savedMainXml(host);
+      const operations: import('../operations.ts').AutomationOperation[] = [
+        {
+          op: 'insertContentControl',
+          span: at(first!),
+          subtype: 'plainText',
+          tag: 'a',
+          returnHandle: true,
+        },
+        {
+          op: 'insertContentControl',
+          span: at(second!),
+          subtype: 'plainText',
+          tag: 'b',
+          returnHandle: true,
+        },
+        { op: 'deleteContentControl', contentControl: block!, keepContent: false },
+      ];
+      if (deleteFirst) operations.unshift(operations.pop()!);
+      const response = host.execute({ operations });
+      expect(response.ok).toBe(false);
+      expect(response.results[deleteFirst ? 1 : 2]).toMatchObject({
+        status: 'error',
+        error: { code: 'conflicting-operations' },
+      });
+      expect(host.revision()).toBe(0);
+      expect(savedMainXml(host)).toBe(before);
+    }
+  );
 });
