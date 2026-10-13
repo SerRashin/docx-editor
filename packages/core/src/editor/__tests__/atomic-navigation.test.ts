@@ -8,7 +8,7 @@
 import { GlobalRegistrator } from '@happy-dom/global-registrator';
 if (!GlobalRegistrator.isRegistered) GlobalRegistrator.register();
 
-import { describe, expect, test } from 'bun:test';
+import { afterEach, describe, expect, test } from 'bun:test';
 import { zipSync, strToU8 } from 'fflate';
 import { mountPaginatedSurface, type PaginatedSurface } from '../paginated-surface.ts';
 import type { LockedControlNavigation } from '../paginated-surface-options.ts';
@@ -61,14 +61,23 @@ interface Mounted {
   readonly paragraphId: string;
 }
 
+const mountedContainers: HTMLElement[] = [];
+const mountedSurfaces: PaginatedSurface[] = [];
+afterEach(() => {
+  for (const surface of mountedSurfaces.splice(0)) surface.destroy();
+  for (const container of mountedContainers.splice(0)) container.remove();
+});
+
 function mount(body: string, navigation: LockedControlNavigation | null): Mounted {
   const container = document.createElement('div');
   document.body.append(container);
+  mountedContainers.push(container);
   const result = mountPaginatedSurface(container, docx(body), {
     scale: 1,
     ...(navigation ? { lockedControlNavigation: navigation } : {}),
   });
   if (!result.ok) throw new Error(`${result.reason}: ${result.detail ?? ''}`);
+  mountedSurfaces.push(result.surface);
   const pages = container.querySelector<HTMLElement>('.docx-pages')!;
   Object.defineProperty(pages, 'getBoundingClientRect', {
     configurable: true,

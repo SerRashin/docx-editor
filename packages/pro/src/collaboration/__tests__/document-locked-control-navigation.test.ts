@@ -58,8 +58,8 @@ const CHIP =
   '<w:r><w:t xml:space="preserve"> tail</w:t></w:r></w:p>';
 
 /** Alice moves over locked chips as units; Bob keeps Word's character-by-character caret. */
-async function peers() {
-  const pair = await harness.pair(zipDocument(CHIP));
+async function peers(body = CHIP) {
+  const pair = await harness.pair(zipDocument(body));
   const open = (peer: Peer, atomic: boolean) => {
     peer.detach();
     return mount({
@@ -118,4 +118,53 @@ test('typing beside a chip on one peer while the other steps over it converges',
   expect(saveReopenDigest(reopened.surface!.session.currentPackage())).toEqual(
     saveReopenDigest(bob.surface!.session.currentPackage())
   );
+});
+
+test('atomic navigation remains correct through undo, redo, and session remount', async () => {
+  const { pair, alice, bob, converge } = await peers();
+  caret(alice, 5);
+  alice.surface!.navigate('right');
+  alice.surface!.type('X');
+  converge();
+  expect(bob.surface!.session.bodyText()).toBe('head TOKENX tail');
+  expect(alice.exec({ type: 'undo' }).ok).toBe(true);
+  converge();
+  expect(bob.surface!.session.bodyText()).toBe('head TOKEN tail');
+  expect(alice.exec({ type: 'redo' }).ok).toBe(true);
+  converge();
+  bob.destroy();
+  const next = await harness.remount(pair.bob);
+  next.detach();
+  const reconnected = mount({
+    document: next.room.document,
+    lockedControlNavigation: 'atomic',
+    modules: [collaborationModule({ session: next.room.session })],
+  });
+  expect(reconnected.surface!.session.bodyText()).toBe('head TOKENX tail');
+  caret(reconnected, 5);
+  reconnected.surface!.navigate('right');
+  expect(reconnected.surface!.state().selection.head.offset).toBe(10);
+});
+
+test('deletion by a peer while atomic navigation edits beside the control converges', async () => {
+  const { pair, alice, bob, converge } = await peers(
+    CHIP.replace('sdtContentLocked', 'contentLocked')
+  );
+  pair.pause();
+  caret(alice, 5);
+  alice.surface!.navigate('right');
+  alice.surface!.type('X');
+  caret(bob, 10);
+  bob.surface!.deleteBackward();
+  expect(chipText(bob)).toBeNull();
+  pair.alice.room.session.flushPendingJournals();
+  pair.bob.room.session.flushPendingJournals();
+  pair.resume();
+  converge();
+  expect(chipText(alice)).toBeNull();
+  expect(alice.surface!.session.bodyText()).toBe('head X tail');
+  expect(alice.surface!.layout().contentControls ?? []).toHaveLength(0);
+  caret(alice, 5);
+  alice.surface!.navigate('right');
+  expect(alice.surface!.state().selection.head.offset).toBe(6);
 });
