@@ -269,6 +269,25 @@ describe('a control that wraps to more lines', () => {
       expect(offsets(m)).toEqual([end, end]);
     });
   });
+
+  // A nearer-edge rule hands a Down that lands in the first half of the control back to the
+  // leading edge, on the line it started from, so the caret never gets past the control.
+  test('Down and Up pass the control instead of stopping on its edge', () => {
+    const below = `<w:p>${run('a'.repeat(12) + ' ')}${locked(LONG)}${run(' zz')}</w:p><w:p>${run('next')}</w:p>${NARROW}`;
+    withMounted(below, 'atomic', (m) => {
+      const ids = m.surface.session.paragraphIds();
+      caretAt(m, 0);
+      for (let press = 0; press < 8 && head(m).paragraphId === ids[0]; press += 1) {
+        m.surface.navigate('down');
+      }
+      expect(head(m).paragraphId).toBe(ids[1]!);
+      const atStart = () => head(m).paragraphId === ids[0] && head(m).offset === 0;
+      for (let press = 0; press < 8 && !atStart(); press += 1) {
+        m.surface.navigate('up');
+      }
+      expect(head(m)).toEqual({ paragraphId: ids[0]!, offset: 0 });
+    });
+  });
 });
 
 describe('Up and Down take the nearer edge', () => {

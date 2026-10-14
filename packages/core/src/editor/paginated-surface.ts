@@ -4750,7 +4750,7 @@ export function mountPaginatedSurface(
       // takes its nearer edge) — for a Shift motion too, so the head selects the control whole
       // and Shift in the opposite direction shrinks it back to the anchor.
       if (atomicNavigation) {
-        const crossed = leaveAtomicControl(layout, selection.head, moved.position, command);
+        const crossed = leaveAtomicControl(layout, selection.head, moved.position);
         if (crossed !== moved.position) moved = { ...moved, position: crossed, caret: undefined };
       }
       if (tocAtPosition(session.part(), moved.position)) {

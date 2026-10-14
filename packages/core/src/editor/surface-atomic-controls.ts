@@ -10,7 +10,6 @@
 import {
   documentOrder,
   paragraphTextFromLayout,
-  type NavigationCommand,
   type SemanticPosition,
   type SemanticSelection,
 } from '../layout/semantic-interaction.ts';
@@ -194,34 +193,22 @@ export function atomicRangeAt(
   return outermost;
 }
 
-/** Motions that travel along the text, so their direction is the sign of the offset change. */
-const ALONG_THE_TEXT: ReadonlySet<NavigationCommand> = new Set([
-  'left',
-  'right',
-  'wordLeft',
-  'wordRight',
-  'lineStart',
-  'lineEnd',
-]);
-
 /**
  * Where a caret that a motion from `origin` landed INSIDE an atomic control goes instead. A
- * motion along the text crosses the control in the direction it travelled — read from the
- * offsets, not the key, because ArrowRight moves backwards through right-to-left text. Any
- * other motion, or one that did not move along this paragraph, takes the nearer edge.
+ * motion within one paragraph crosses the control in the direction it travelled — read from
+ * the offsets, not the key, because ArrowRight moves backwards through right-to-left text. A
+ * vertical motion counts too: taking the nearer edge of a control that wraps over several
+ * lines can hand back the line the motion started on, so the caret never gets past it. A
+ * motion that arrives from another paragraph takes the nearer edge.
  */
 export function leaveAtomicControl(
   layout: SemanticLayout,
   origin: SemanticPosition,
-  landed: SemanticPosition,
-  command: NavigationCommand
+  landed: SemanticPosition
 ): SemanticPosition {
   const around = atomicRangeAt(layout, landed);
   if (!around) return landed;
-  const travelled =
-    ALONG_THE_TEXT.has(command) && origin.paragraphId === landed.paragraphId
-      ? landed.offset - origin.offset
-      : 0;
+  const travelled = origin.paragraphId === landed.paragraphId ? landed.offset - origin.offset : 0;
   if (travelled > 0) return around.to;
   if (travelled < 0) return around.from;
   const middle = (around.from.offset + around.to.offset) / 2;
