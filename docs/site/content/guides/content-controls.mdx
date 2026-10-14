@@ -260,6 +260,7 @@ With the option, run formatting passes the content lock: bold, italic, color, fo
 - Typing, pasting, cutting, or deleting text in the control.
 - Paragraph properties, such as alignment or indents.
 - Removing a control whose wrapper is locked.
+- Tracked formatting in suggesting mode. Its revision would sit inside the lock, where nobody could accept or reject it.
 
 A control with `w:dataBinding` still refuses formatting with `bound`. The option does not change the document: the saved `w:lock` value stays the same. The option applies only to local edits. In a collaboration session, every participant receives formatting from a participant that set the option.
 

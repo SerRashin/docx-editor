@@ -322,6 +322,27 @@ describe('contentLockPolicy: formatting passes the content half of a lock (opt-i
     ).toBe('locked');
   });
 
+  test('with the policy a tracked restyle is still refused', () => {
+    // Its format revision would sit inside the lock, where accept and reject are refused.
+    const revision = { author: 'A', date: '2026-01-01T00:00:00Z' };
+    const part = token('sdtContentLocked');
+    const id = paragraphs(part)[0]!.id;
+    expect(refusalWith(part, { ...bold(id, 3, 8), revision } as TreeDocOp)).toBe('locked');
+    expect(refusalWith(part, { ...bold(id, 0, 3), revision } as TreeDocOp)).toBe(null);
+    const block = parseDoc(
+      `<w:sdt><w:sdtPr><w:lock w:val="contentLocked"/></w:sdtPr><w:sdtContent>` +
+        `<w:p><w:r><w:t>TOKEN</w:t></w:r></w:p></w:sdtContent></w:sdt>`
+    );
+    expect(
+      refusalWith(block, {
+        op: 'setParagraphMarkProperties',
+        paragraphId: paragraphs(block)[0]!.id,
+        properties: [{ localName: 'b' }],
+        revision,
+      })
+    ).toBe('locked');
+  });
+
   test('the store keeps a frozen copy of the flags set to true', () => {
     expect(contentLockPolicyOf(undefined)).toBeUndefined();
     expect(contentLockPolicyOf({})).toBeUndefined();

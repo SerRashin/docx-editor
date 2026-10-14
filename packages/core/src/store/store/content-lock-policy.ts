@@ -15,10 +15,14 @@ import type { TreeDocOp } from './tree-op-types.ts';
 const HIDING_RUN_PROPERTIES: ReadonlySet<string> = new Set(['vanish', 'specVanish', 'webHidden']);
 
 /**
- * Whether `op` only restyles text and `policy` lets restyling past a content lock: a
+ * Whether `op` only restyles text and `policy` lets restyling past a content lock: an untracked
  * `setRunProperties` or `setParagraphMarkProperties` (the mark is `CT_ParaRPr`, run formatting)
  * that writes no hiding property. The removal half of a lock and `w:dataBinding` are not
  * asked here, and stay refused.
+ *
+ * A TRACKED restyle stays refused. It leaves a format revision inside the locked content, and
+ * accepting or rejecting that revision is a write the lock refuses, so the revision could never
+ * be resolved and every resolve-all over the story would fail on it.
  */
 export function restylePassesContentLock(
   op: TreeDocOp,
@@ -26,6 +30,7 @@ export function restylePassesContentLock(
 ): boolean {
   if (policy?.allowFormattingInLockedContent !== true) return false;
   if (op.op !== 'setRunProperties' && op.op !== 'setParagraphMarkProperties') return false;
+  if (op.revision !== undefined) return false;
   return op.properties.every((property) => !HIDING_RUN_PROPERTIES.has(property.localName));
 }
 
