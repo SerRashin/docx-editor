@@ -109,7 +109,6 @@ import {
   validateTreeOp,
   type DetectedToc,
   type OoxmlElement,
-  type OoxmlNode,
   type StoryScope,
   type TreeDocOp,
 } from '@docx-editor.dev/core/store';
@@ -286,7 +285,10 @@ import {
   storyScopeOfNodeId,
 } from './surface-scope.ts';
 import { createCaretViewFollower, type CaretFollowMode } from './surface-caret-follow.ts';
-import { contentControlSelectionRange } from './surface-content-control-range.ts';
+import {
+  contentChildrenOf,
+  contentControlSelectionRange,
+} from './surface-content-control-range.ts';
 import { createHeaderFooterOps } from './surface-hf-ops.ts';
 import { createImageOps } from './surface-image-ops.ts';
 import {
@@ -2070,12 +2072,6 @@ export function mountPaginatedSurface(
     return contentControlHoldingParagraph(part, selection.head.paragraphId);
   }
 
-  function isContentControlElement(node: OoxmlNode): node is OoxmlElement {
-    // Shared walk predicate: typed `contentControl`, or generic WML `sdt` only.
-    // Foreign-namespace `<x:sdt>` stays opaque and is never treated as a Word control.
-    return isContentControl(node);
-  }
-
   /**
    * The control a given id names, in whichever story owns it.
    *
@@ -2090,7 +2086,7 @@ export function mountPaginatedSurface(
     // one of the 64 story-store slots per part touched and never give it back.
     const part = partOfNodeId(session, controlId);
     const node = findNode(part ?? session.part(), controlId);
-    if (!node || !isContentControlElement(node)) return null;
+    if (!node || !isContentControl(node)) return null;
     return node;
   }
 
@@ -2146,19 +2142,6 @@ export function mountPaginatedSurface(
         if (ta === null && tb !== null) return 1;
         return 0; // document order already from layout
       });
-  }
-
-  function contentChildrenOf(control: OoxmlElement): readonly OoxmlNode[] {
-    for (const child of control.children) {
-      if (child.kind === 'textValue') continue;
-      if (
-        (child as { kind: string }).kind === 'contentControlContent' ||
-        child.localName === 'sdtContent'
-      ) {
-        return child.children;
-      }
-    }
-    return [];
   }
 
   /**
