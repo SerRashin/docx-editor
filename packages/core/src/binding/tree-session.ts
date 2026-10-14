@@ -164,13 +164,8 @@ export function openTreeSessionFromPackage(
   loaded: OoxmlPackageResult,
   options: OpenTreeSessionOptions = {}
 ): OpenTreeSessionResult {
-  if (!loaded.ok) {
-    return {
-      ok: false,
-      reason: loaded.reason,
-      ...(loaded.detail ? { detail: loaded.detail } : {}),
-    };
-  }
+  // The package's refusal as it is, with the limit it crossed when it names one.
+  if (!loaded.ok) return loaded;
 
   const pkgLoaded: OoxmlPackage = loaded.package;
   const main = pkgLoaded.parts.get(pkgLoaded.mainDocumentPart);

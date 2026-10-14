@@ -3,7 +3,7 @@
 // that module stays stable.
 
 import type { Node as PMNode } from 'prosemirror-model';
-import type { OoxmlPackageRejection } from '@docx-editor.dev/core/store';
+import type { OoxmlPackageRejection, OoxmlPackageResult } from '@docx-editor.dev/core/store';
 import type { ReviewModuleContribution } from '../contracts/modules.ts';
 import type { ContentLockPolicy } from '../store/package/ooxml-edit.ts';
 import type { TreeApplyResult, TreeDocxSessionView } from './tree-session-contract.ts';
@@ -39,7 +39,8 @@ export type TreeSessionRejection = OoxmlPackageRejection | 'no-main-document-tre
  */
 export type OpenTreeSessionResult =
   | { readonly ok: true; readonly session: TreeDocxSession }
-  | { readonly ok: false; readonly reason: TreeSessionRejection; readonly detail?: string };
+  | Extract<OoxmlPackageResult, { readonly ok: false }>
+  | { readonly ok: false; readonly reason: 'no-main-document-tree'; readonly detail?: string };
 
 /**
  * Binding-only session methods that exchange ProseMirror projections.
