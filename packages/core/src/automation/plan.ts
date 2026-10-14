@@ -2802,8 +2802,9 @@ export function createBatchPlanner(host: BatchPlannerHost): BatchPlanner {
         const pin = pinWrite(plan);
         if (pin) return pin;
         if (!operation.keepContent) {
+          // Touched, not claimed: removing a nested control too shares these paragraphs.
           for (const paragraphId of found.control.paragraphIds) {
-            const conflict = claim(plan, paragraphId);
+            const conflict = touch(plan, paragraphId);
             if (conflict) return conflict;
           }
         }

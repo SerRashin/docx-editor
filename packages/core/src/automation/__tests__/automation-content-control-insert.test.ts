@@ -159,4 +159,31 @@ describe('insertContentControl over the protocol', () => {
       expect(savedMainXml(host)).toBe(before);
     }
   );
+
+  test('removes a nested control and its container in one batch', () => {
+    const host = open(
+      docx(
+        '<w:sdt><w:sdtPr><w:tag w:val="outer"/></w:sdtPr><w:sdtContent>' +
+          '<w:sdt><w:sdtPr><w:tag w:val="inner"/></w:sdtPr><w:sdtContent>' +
+          '<w:p><w:r><w:t>held</w:t></w:r></w:p></w:sdtContent></w:sdt>' +
+          '</w:sdtContent></w:sdt><w:p><w:r><w:t>tail</w:t></w:r></w:p>'
+      )
+    );
+    const { body } = roots(host);
+    const found = host.execute({
+      operations: [
+        { op: 'getContentControlsByTag', scope: { body }, tag: 'inner' },
+        { op: 'getContentControlsByTag', scope: { body }, tag: 'outer' },
+      ],
+    });
+    const response = host.execute({
+      operations: [handlesAt(found, 0)[0]!, handlesAt(found, 1)[0]!].map((contentControl) => ({
+        op: 'deleteContentControl' as const,
+        contentControl,
+        keepContent: false,
+      })),
+    });
+    expect(response.ok).toBe(true);
+    expect(savedMainXml(host)).not.toContain('held');
+  });
 });
