@@ -4,6 +4,7 @@ import type {
   ReviewDisplayMode,
   FieldResultsMode,
   ContentLockPolicy,
+  FontShapingOptions,
   LockedControlNavigation,
 } from '@docx-editor.dev/core/editor';
 import { FormControlTranslateProvider } from './form-control-translate';
@@ -67,8 +68,8 @@ import {
 } from './revision-style-registry';
 
 /**
- * Props for `DocxEditor.Root`. Only `document`, `fonts`, and `imageDecodePort` identity remounts
- * the editor. Later `author`, `locale`, `mode`, `translate`, `zoom`, and `zoomMode` changes use
+ * Props for `DocxEditor.Root`. `document`, `fonts` and `imageDecodePort` identity changes remount
+ * the editor. Changing `fontShaping.maxFontBytes` also remounts. Later `author`, `locale`, `mode`, `translate`, `zoom`, and `zoomMode` changes use
  * instance setters. `modules` is sampled at mount only.
  *
  * @public
@@ -89,6 +90,8 @@ export interface DocxEditorRootProps {
    * failures degrade to the fixed measurer and report through `onFontError`.
    */
   fonts?: FontConfiguration | FontConfigurationFragment | FontResolver;
+  /** Explicit shaping byte ceiling; a changed maxFontBytes value remounts. */
+  fontShaping?: FontShapingOptions;
   /** Author for later comments, replies, and tracked changes. Changes apply without a remount. */
   author?: string;
   /**
@@ -258,6 +261,7 @@ export function DocxEditorRoot(props: DocxEditorRootProps) {
   const {
     document: doc,
     fonts,
+    fontShaping,
     author,
     locale,
     translate,
@@ -282,6 +286,7 @@ export function DocxEditorRoot(props: DocxEditorRootProps) {
   const [markupRevision, setMarkupRevision] = useState(0);
   const propsRef = useRef(props);
   propsRef.current = props;
+  const fontShapingMaxFontBytes = fontShaping?.maxFontBytes;
 
   const [editor, setEditor] = useState<DocxEditorInstance | null>(null);
   /** The `fieldResults` the current instance was created with. */
@@ -318,6 +323,7 @@ export function DocxEditorRoot(props: DocxEditorRootProps) {
     const instance = createDocxEditor({
       ...(p.document !== undefined ? { document: p.document } : {}),
       ...(p.fonts ? { fonts: p.fonts } : {}),
+      ...(p.fontShaping ? { fontShaping: p.fontShaping } : {}),
       ...(p.author !== undefined ? { author: p.author } : {}),
       ...(p.locale !== undefined ? { locale: p.locale } : {}),
       translate,
@@ -351,7 +357,7 @@ export function DocxEditorRoot(props: DocxEditorRootProps) {
       // Functional update: a StrictMode re-run's second instance must not be clobbered.
       setEditor((current) => (current === instance ? null : current));
     };
-  }, [doc, fonts, imageDecodePort, revisionStyleRegistry]);
+  }, [doc, fonts, fontShapingMaxFontBytes, imageDecodePort, revisionStyleRegistry]);
 
   // Fired AFTER the instance is published: this effect runs in the commit that rendered
   // the new editor, after child layout effects — so a `DocxEditor.Content` in the tree

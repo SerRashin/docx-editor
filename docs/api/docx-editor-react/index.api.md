@@ -73,6 +73,7 @@ import { FontOrigin } from '@docx-editor.dev/core/editor';
 import { FontResolutionRequest } from '@docx-editor.dev/core/editor';
 import { FontResolver } from '@docx-editor.dev/core/editor';
 import { FontResolverMark } from '@docx-editor.dev/core/editor';
+import { FontShapingOptions } from '@docx-editor.dev/core/editor';
 import { FontSource } from '@docx-editor.dev/core/contracts/editor';
 import { FontSourceSubstitution } from '@docx-editor.dev/core/contracts/editor';
 import { FontUrlSource } from '@docx-editor.dev/core/editor';
@@ -1235,6 +1236,7 @@ export interface DocxEditorProps {
     document?: DocumentSource;
     fieldResults?: FieldResultsMode;
     fonts?: FontConfiguration | FontConfigurationFragment | FontResolver;
+    fontShaping?: FontShapingOptions;
     hyperlinkPopup?: boolean;
     i18n?: Translations;
     readonly loadingIndicator?: DocxEditorChildren;
@@ -1348,6 +1350,7 @@ export interface DocxEditorRootProps {
     document?: DocumentSource;
     fieldResults?: FieldResultsMode;
     fonts?: FontConfiguration | FontConfigurationFragment | FontResolver;
+    fontShaping?: FontShapingOptions;
     imageDecodePort?: ImageDecodePort;
     locale?: string;
     lockedControlNavigation?: LockedControlNavigation;
