@@ -3,10 +3,12 @@ import type {
   ResolvedRevisionMarkup,
   ReviewDisplayMode,
   FieldResultsMode,
+  ContentLockPolicy,
   LockedControlNavigation,
 } from '@docx-editor.dev/core/editor';
 import { formControlTranslateKey } from './form-control-translate';
 import { warnFieldResultsChanged } from './field-results-warning';
+import { warnContentLockPolicyChanged } from './content-lock-policy-warning';
 import { warnLockedControlNavigationChanged } from './locked-control-navigation-warning';
 import {
   computed,
@@ -96,6 +98,13 @@ export interface DocxEditorRootProps {
    */
   fieldResults?: FieldResultsMode;
   /**
+   * Opt-in relaxation of content-control locks. With `allowFormattingInLockedContent: true`,
+   * readers can format `contentLocked` and `sdtContentLocked` controls while their text stays
+   * protected. Read once, when the editor is created: a later change in value is ignored,
+   * with a development warning.
+   */
+  contentLockPolicy?: ContentLockPolicy;
+  /**
    * How the caret moves through an inline content control whose content is locked.
    * `'characters'` (the default) walks through its characters, as Word does. `'atomic'` makes
    * the control one caret unit. Read once, when the editor is created: a later change is
@@ -150,6 +159,8 @@ export function useDocxEditorRootOwner(
   const editorRef = shallowRef<DocxEditorInstance | null>(null);
   /** The `fieldResults` the current instance was created with. */
   let createdFieldResults: DocxEditorRootProps['fieldResults'];
+  /** The `contentLockPolicy` the current instance was created with. */
+  let createdContentLockPolicy: DocxEditorRootProps['contentLockPolicy'];
   /** The `lockedControlNavigation` the current instance was created with. */
   let createdLockedControlNavigation: DocxEditorRootProps['lockedControlNavigation'];
   const markupRevision = shallowRef(0);
@@ -246,6 +257,7 @@ export function useDocxEditorRootOwner(
     destroyEditor();
     const p = toValue(props);
     createdFieldResults = p.fieldResults;
+    createdContentLockPolicy = p.contentLockPolicy;
     createdLockedControlNavigation = p.lockedControlNavigation;
     const instance = createDocxEditor({
       ...(p.document !== undefined ? { document: p.document } : {}),
@@ -256,6 +268,7 @@ export function useDocxEditorRootOwner(
       ...(p.revisionMarkup !== undefined ? { revisionMarkup: p.revisionMarkup } : {}),
       ...(p.reviewDisplayMode !== undefined ? { reviewDisplayMode: p.reviewDisplayMode } : {}),
       ...(p.fieldResults !== undefined ? { fieldResults: p.fieldResults } : {}),
+      ...(p.contentLockPolicy !== undefined ? { contentLockPolicy: p.contentLockPolicy } : {}),
       ...(p.lockedControlNavigation !== undefined
         ? { lockedControlNavigation: p.lockedControlNavigation }
         : {}),
@@ -411,6 +424,15 @@ export function useDocxEditorRootOwner(
     () => [editorRef.value, toValue(props).fieldResults] as const,
     ([editor, fieldResults]) => {
       if (editor) warnFieldResultsChanged(createdFieldResults, fieldResults);
+    },
+    { flush: 'post' }
+  );
+
+  // Compared by value, so an inline policy object re-created on each render does not warn.
+  watch(
+    () => [editorRef.value, toValue(props).contentLockPolicy] as const,
+    ([editor, contentLockPolicy]) => {
+      if (editor) warnContentLockPolicyChanged(createdContentLockPolicy, contentLockPolicy);
     },
     { flush: 'post' }
   );

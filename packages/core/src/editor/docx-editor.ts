@@ -304,7 +304,7 @@ export function createDocxEditor(config: DocxEditorConfig): DocxEditorInstance {
     continueOpen: (budgetMs) => !surface || preparedOpen.continueOpen(surface, budgetMs),
     // Fonts resolved before the mount are laid out once, by the mount; see `preparedOpenHook`.
     prepare: preparedOpen.preparedOpenHook(
-      () => reviewModelOption(modules, reportDiagnostic),
+      () => preparedOpen.sessionOpenOptions(reviewModelOption(modules, reportDiagnostic), config),
       (bytes, session) => {
         if (deferredRefreshBytes === bytes) return null;
         preparedFontSession = session;
@@ -635,7 +635,7 @@ export function createDocxEditor(config: DocxEditorConfig): DocxEditorInstance {
       // default (`all-markup`), which is what the review rail annotates.
       revisionDisplayMode: reviewEnabled ? reviewDisplayMode : 'proposed',
       revisionMarkup: revisionMarkupState.current(),
-      ...reviewModelOption(modules, reportDiagnostic),
+      ...preparedOpen.sessionOpenOptions(reviewModelOption(modules, reportDiagnostic), config),
       ...preparedOpen.takePreparedOpen(bytes),
       ...(shapedMeasurer
         ? { measurer: shapedMeasurer, ...(shapedProducer ? { producer: shapedProducer } : {}) }

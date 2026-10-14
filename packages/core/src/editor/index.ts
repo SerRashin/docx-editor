@@ -213,6 +213,8 @@ export {
 export type { FontMeasurementState } from './docx-editor-types.ts';
 // `DocxEditorConfig.fieldResults` takes it.
 export type { FieldResultsMode } from '../store/package/field-result-mode.ts';
+// `DocxEditorConfig.contentLockPolicy` takes it.
+export type { ContentLockPolicy } from '../store/package/ooxml-edit.ts';
 // `DocxEditorConfig.lockedControlNavigation` takes it.
 export type { LockedControlNavigation } from './paginated-surface-options.ts';
 // Automation over an editor that is already open. The protocol itself lives in the neutral

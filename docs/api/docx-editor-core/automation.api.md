@@ -1353,6 +1353,11 @@ export type AutomationValue = {
 };
 
 // @public
+export interface ContentLockPolicy {
+    readonly allowFormattingInLockedContent?: boolean;
+}
+
+// @public
 export function createAutomationPaginationProvider(options: AutomationPaginationOptions): AutomationPaginationProvider;
 
 // @public
@@ -1423,6 +1428,7 @@ export const SERVER_AUTOMATION_CAPABILITIES: AutomationCapabilities;
 // @public
 export interface ServerAutomationHostOptions {
     readonly collaborationModel?: CollaborationModuleContribution;
+    readonly contentLockPolicy?: ContentLockPolicy;
     readonly limits?: OoxmlPackageLimits;
     readonly pagination?: AutomationPaginationProvider;
 }

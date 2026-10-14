@@ -3,6 +3,7 @@ import type {
   ResolvedRevisionMarkup,
   ReviewDisplayMode,
   FieldResultsMode,
+  ContentLockPolicy,
   LockedControlNavigation,
 } from '@docx-editor.dev/core/editor';
 import { DialogHost } from './dialog-host';
@@ -134,6 +135,7 @@ export const DocxEditorRoot = defineComponent({
     revisionMarkup: Object as PropType<RevisionMarkupOptions>,
     reviewDisplayMode: String as PropType<ReviewDisplayMode>,
     fieldResults: { type: String as PropType<FieldResultsMode>, default: undefined },
+    contentLockPolicy: { type: Object as PropType<ContentLockPolicy>, default: undefined },
     lockedControlNavigation: {
       type: String as PropType<LockedControlNavigation>,
       default: undefined,

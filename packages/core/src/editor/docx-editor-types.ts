@@ -11,6 +11,7 @@ import type {
   InvalidTextFormFieldChromeHandlers,
 } from './popup-sessions.ts';
 import type { TextFormFieldChromeHandlers } from './text-form-field-session.ts';
+import type { ContentLockPolicy } from '../store/package/ooxml-edit.ts';
 import type { LockedControlNavigation } from './paginated-surface-options.ts';
 /**
  * Instance-level types for `createDocxEditor` — kept out of the composition root so
@@ -93,6 +94,14 @@ export interface DocxEditorConfig {
    * reason. See {@link EditorModule}.
    */
   modules?: readonly EditorModule[];
+  /**
+   * Opt-in relaxation of content-control `w:lock`: with `allowFormattingInLockedContent`,
+   * `contentLocked` / `sdtContentLocked` controls refuse typing, pasting and deleting their
+   * text as always, but accept run formatting (toolbar, shortcuts, automation `setFont`) —
+   * for hosts that protect WHAT a control says and let authors style it. Default: Word's
+   * behaviour, where a content lock refuses every edit including formatting.
+   */
+  contentLockPolicy?: ContentLockPolicy;
   /**
    * The mode the editor opens in — one prop, matching the toolbar's three-state pill.
    *

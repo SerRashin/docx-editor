@@ -25,6 +25,7 @@
       "revisionMarkup",
       "reviewDisplayMode",
       "fieldResults",
+      "contentLockPolicy",
       "lockedControlNavigation"
     ],
     "deferredInVue": {},
